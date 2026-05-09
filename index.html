@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Movies & Shows — Defect Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #18181f;
+    --surface2: #21212b;
+    --border: #2e2e3a;
+    --accent: #e8522a;
+    --accent2: #f0a04b;
+    --warn: #d4a017;
+    --escalate: #c0392b;
+    --green: #2ecc71;
+    --text: #e8e8f0;
+    --muted: #8888a0;
+    --tag-general: #e8522a22;
+    --tag-general-border: #e8522a;
+    --tag-elements: #7c5cbf22;
+    --tag-elements-border: #7c5cbf;
+    --tag-other: #1a7a5e22;
+    --tag-other-border: #1a7a5e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    padding: 40px 24px 80px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  header { border-bottom: 1px solid var(--border); padding-bottom: 28px; margin-bottom: 40px; }
+  .header-label { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 10px; }
+  h1 { font-size: 26px; font-weight: 700; color: #fff; line-height: 1.2; margin-bottom: 10px; }
+  .header-meta { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 40px; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin: 44px 0 20px; }
+  .section-pill { font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; border: 1px solid; }
+  .pill-general  { background: var(--tag-general);  border-color: var(--tag-general-border);  color: #f08060; }
+  .pill-elements { background: var(--tag-elements); border-color: var(--tag-elements-border); color: #a888e0; }
+  .pill-other    { background: var(--tag-other);    border-color: var(--tag-other-border);    color: #50c0a0; }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+  .defect-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; overflow: hidden; transition: border-color 0.2s; }
+  .defect-card:hover { border-color: #444456; }
+  .defect-header { display: flex; align-items: center; gap: 12px; padding: 14px 18px; cursor: pointer; user-select: none; background: var(--surface2); }
+  .defect-number { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); min-width: 28px; }
+  .defect-name { font-weight: 600; font-size: 14px; color: #fff; flex: 1; }
+  .defect-tags { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+  .tag { font-size: 10px; font-family: 'JetBrains Mono', monospace; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+  .tag-escalate { background: #c0392b22; color: #e74c3c; border: 1px solid #c0392b55; }
+  .tag-updated  { background: #2ecc7122; color: #2ecc71; border: 1px solid #2ecc7155; }
+  .tag-karina   { background: #f0a04b22; color: #f0a04b; border: 1px solid #f0a04b55; }
+  .tag-factcheck { background: #1a6fa822; color: #5bc0eb; border: 1px solid #1a6fa855; }
+  .chevron { color: var(--muted); font-size: 12px; transition: transform 0.2s; margin-left: 6px; flex-shrink: 0; }
+  .defect-card.open .chevron { transform: rotate(180deg); }
+  .defect-body { display: none; padding: 18px 20px 20px; border-top: 1px solid var(--border); }
+  .defect-card.open .defect-body { display: block; }
+  .what-it-means { font-size: 13px; color: var(--text); margin-bottom: 14px; line-height: 1.75; }
+  .what-it-means strong { color: #fff; }
+  .rule-block { background: var(--bg); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; }
+  .rule-block.green  { border-color: var(--green); }
+  .rule-block.warn   { border-color: var(--warn); }
+  .rule-block.purple { border-color: #7c5cbf; }
+  .block-label { font-size: 10px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; font-weight: 600; }
+  .block-label.red    { color: var(--accent); }
+  .block-label.green  { color: var(--green); }
+  .block-label.warn   { color: var(--warn); }
+  .block-label.purple { color: #a888e0; }
+  .example-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .ex-box { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-size: 12.5px; }
+  .ex-box.bad  { border-color: #c0392b55; }
+  .ex-box.good { border-color: #2ecc7155; }
+  .ex-label { font-size: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.08em; }
+  .ex-label.bad  { color: #e74c3c; }
+  .ex-label.good { color: #2ecc71; }
+  .escalate-box { display: flex; align-items: flex-start; gap: 10px; background: #c0392b12; border: 1px solid #c0392b44; border-radius: 6px; padding: 10px 14px; margin-top: 12px; font-size: 12.5px; color: #e88; }
+  .escalate-box::before { content: '⚠'; flex-shrink: 0; }
+  .karina-box { display: flex; align-items: flex-start; gap: 10px; background: #f0a04b12; border: 1px solid #f0a04b44; border-radius: 6px; padding: 10px 14px; margin-top: 10px; font-size: 12.5px; color: #f0c080; }
+  .karina-box::before { content: '💬'; flex-shrink: 0; }
+  .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 40px; }
+  .toc-title { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 14px; }
+  .toc-section { margin-bottom: 10px; }
+  .toc-section-label { font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+  .toc-links { display: flex; flex-wrap: wrap; gap: 6px; }
+  .toc-link { font-size: 12px; color: var(--accent2); text-decoration: none; padding: 2px 8px; background: var(--surface2); border-radius: 4px; transition: background 0.15s; }
+  .toc-link:hover { background: var(--border); }
+  .controls { display: flex; gap: 10px; margin-bottom: 20px; }
+  .ctrl-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); cursor: pointer; letter-spacing: 0.08em; transition: all 0.15s; }
+  .ctrl-btn:hover { border-color: var(--accent); color: var(--text); }
+  hr.divider { border: none; border-top: 1px solid var(--border); margin: 8px 0 14px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">Scenario-based SbS · Movies &amp; Shows</div>
+  <h1>Defect Reference Guide</h1>
+  <div class="header-meta">Wiki last updated 8 May 2026 18:14 · Github last updated 9 May 2026 · EN</div>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#5bc0eb"></div> Requires fact-checking</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div> Needs clarification from product team</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f0a04b"></div> Clarified by Karina</div>
+
+  <div class="legend-item"><div class="legend-dot" style="background:#7c5cbf"></div> Editor tip</div>
+</div>
+
+<div class="toc">
+  <div class="toc-title">Jump to section</div>
+  <div class="toc-section">
+    <div class="toc-section-label">1 · General</div>
+    <div class="toc-links">
+      <a class="toc-link" href="#g1">Not Movie/Show</a>
+      <a class="toc-link" href="#g2">Empty Answer</a>
+      <a class="toc-link" href="#g3">Legality of Content</a>
+      <a class="toc-link" href="#g4">Loss of Sequels/Prequels</a>
+      <a class="toc-link" href="#g5">Loss of Versions</a>
+      <a class="toc-link" href="#g6">Irrelevant Movie/Show</a>
+      <a class="toc-link" href="#g7">Irrelevant Selections</a>
+      <a class="toc-link" href="#g8">Incorrect Movie Rating</a>
+      <a class="toc-link" href="#g9">Popularity &amp; Relevance</a>
+      <a class="toc-link" href="#g10">Irrelevant Responses</a>
+      <a class="toc-link" href="#g11">Movies 18+</a>
+      <a class="toc-link" href="#g12">Selection Missing</a>
+      <a class="toc-link" href="#g13a">Duplicate Tiles</a>
+      <a class="toc-link" href="#g13b">Incomplete Set</a>
+      <a class="toc-link" href="#g15">Irrelevant URLs</a>
+      <a class="toc-link" href="#g16">Viewing Params</a>
+      <a class="toc-link" href="#g17">Missed Dialog</a>
+      <a class="toc-link" href="#g18">Language Issues</a>
+    </div>
+  </div>
+  <div class="toc-section" style="margin-top:10px">
+    <div class="toc-section-label">2 · Elements</div>
+    <div class="toc-links">
+      <a class="toc-link" href="#e1">No Introduction</a>
+      <a class="toc-link" href="#e2">Intro Misplaced</a>
+      <a class="toc-link" href="#e3">Intro Length</a>
+      <a class="toc-link" href="#e4">Intro Issues</a>
+      <a class="toc-link" href="#e5">No Pictures</a>
+      <a class="toc-link" href="#e6">Pictures Mismatch</a>
+      <a class="toc-link" href="#e7">No Title</a>
+      <a class="toc-link" href="#e8">Title Mismatch</a>
+      <a class="toc-link" href="#e9">No Subtitle</a>
+      <a class="toc-link" href="#e10">Subtitle Mismatch</a>
+      <a class="toc-link" href="#e11">No Year of Release</a>
+      <a class="toc-link" href="#e12">Wrong Date</a>
+      <a class="toc-link" href="#e13">No Genre</a>
+      <a class="toc-link" href="#e14">Genre Mismatch</a>
+      <a class="toc-link" href="#e15">No Age Rating</a>
+      <a class="toc-link" href="#e16">Age Rating Issues</a>
+      <a class="toc-link" href="#e17">No Review Score</a>
+      <a class="toc-link" href="#e18">No Description</a>
+      <a class="toc-link" href="#e19">No Duration</a>
+      <a class="toc-link" href="#e20">Duration Mismatch</a>
+      <a class="toc-link" href="#e21">No Player/Links</a>
+      <a class="toc-link" href="#e22">Trailer Missing</a>
+      <a class="toc-link" href="#e23">Poor Trailer</a>
+      <a class="toc-link" href="#e24">Sources</a>
+    </div>
+  </div>
+  <div class="toc-section" style="margin-top:10px">
+    <div class="toc-section-label">3 · Other</div>
+    <div class="toc-links">
+      <a class="toc-link" href="#o1">Other</a>
+    </div>
+  </div>
+  <div class="toc-section" style="margin-top:10px">
+    <div class="toc-section-label">Quick Reference</div>
+    <div class="toc-links">
+      <a class="toc-link" href="#fc">What to Fact-Check</a>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn" onclick="expandAll()">EXPAND ALL</button>
+  <button class="ctrl-btn" onclick="collapseAll()">COLLAPSE ALL</button>
+</div>
+
+<!-- ═══════════════════ 1. GENERAL ═══════════════════ -->
+<div class="section-header">
+  <span class="section-pill pill-general">1 · General</span>
+  <div class="section-line"></div>
+</div>
+
+<div class="defect-card" id="g1">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G1</span>
+    <span class="defect-name">Not Movie/Show</span>
+
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The user's query does not belong to the Movies &amp; Shows scenario at all — e.g., a game show, sports broadcast, YouTube creator, or anything that isn't a movie/series on a streaming platform. <strong>Mark this when the task itself shouldn't be in this scenario.</strong></p>
+    <div class="rule-block warn">
+      <div class="block-label warn">important</div>
+      Even if the query is out of scope, still evaluate the response as-is. Don't skip the task — mark the defect and continue.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query: "Survivor 2024 kim elendi?" (Turkish game show)
+        <hr class="divider">
+        Query: "Galatasaray maçı nerede izlenir?" (sports broadcast)
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "Squid Game" (Netflix series — in scope)
+        <hr class="divider">
+        Query: "Stranger Things türkçe" (series — in scope)
+      </div>
+    </div>
+    <div class="karina-box">Karina: if it's not a movie/series on typical streaming platforms, a text-only response is acceptable. Major streaming platforms are the reference point.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="g2">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G2</span>
+    <span class="defect-name">Empty Answer</span>
+    <div class="defect-tags"><span class="tag tag-karina">KARINA CLARIFIED</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The response contains <strong>only text</strong> or <strong>only video players</strong> but <strong>no Movie Card</strong>, even though the request type requires one.</p>
+    <div class="rule-block">
+      <div class="block-label red">when to mark</div>
+      Any of the following = mark Empty Answer:<br><br>
+      • Response has only text, no card (any request type)<br>
+      • Response shows only video players with no actual Movie Card (e.g., a list of YouTube episode links with no card structure)<br>
+      • Factual request returns only text with no card — even though cards are optional for Factual, if a card is entirely absent, mark this defect
+    </div>
+    <div class="rule-block warn">
+      <div class="block-label warn">do element defects still apply?</div>
+      Yes — if there is something to mark in General defects, mark it. Even when "Empty Answer" is marked, continue evaluating the response for other applicable General defects. Element defects (No Pictures, No Genre, etc.) only apply if a card is partially present.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query: "Çukur 1. sezon" → Response: only a list of video players (episode links), no Movie Card shown.
+        <hr class="divider">
+        Query: "Who directed Inception?" (factual) → Response: only a text answer, no card.
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "Inception" → Response includes a proper Movie Card. Evaluate its elements normally.
+      </div>
+    </div>
+    <div class="karina-box">Karina (via Elif): Q1 (video-only response) and Q2 (factual request, text-only) → both confirmed as Empty Answer defect.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="g3">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G3</span>
+    <span class="defect-name">Legality of Content</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The model adds unnecessary copyright or piracy warnings <strong>without the user asking about it</strong>.</p>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query: "Dune izle" → Card is returned but model adds: "Streaming from unofficial sources may violate copyright laws."
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "Is it legal to download movies in Turkey?" → Model discusses legality. (User asked — it's relevant.)
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="g4">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G4</span>
+    <span class="defect-name">Loss of Sequels/Prequels</span>
+    <div class="defect-tags"><span class="tag tag-factcheck">FACT-CHECK</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means"><strong>Only applies to One Movie/Show requests.</strong> When a user asks about a specific title that has sequels or prequels, the response must also include cards for those related titles.</p>
+    <div class="rule-block warn">
+      <div class="block-label warn">scope — important</div>
+      Does NOT apply to Selections/Recommendations. If the user asks "best action movies" and The Dark Knight appears without its sequels, that is NOT this defect.
+    </div>
+    <div class="rule-block warn">
+      <div class="block-label warn">when to mark</div>
+      If the film has both sequels AND prequels, both must be present. Mark this defect only when the response is missing at least one that should be there.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query: "The Dark Knight" → Only The Dark Knight card shown. Missing: Batman Begins (prequel) + The Dark Knight Rises (sequel).
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "The Dark Knight" → All 3 Nolan Batman films shown.
+      </div>
+    </div>
+    <div class="escalate-box">Q9 still open: If sequels/prequels are mentioned in the text of the response but not shown as separate Movie Cards — is that still a defect? Or is a textual mention sufficient? Awaiting product team.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="g5">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G5</span>
+    <span class="defect-name">The Loss of Versions of Identical Films</span>
+    <div class="defect-tags"><span class="tag tag-escalate">NEEDS CLARIFICATION</span><span class="tag tag-factcheck">FACT-CHECK</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">Some films exist in multiple well-known versions (remakes, different release years). When a user queries a title <strong>without specifying which version</strong>, the response should include cards for all major versions.</p>
+    <div class="rule-block">
+      <div class="block-label red">how to check</div>
+      Quick Wikipedia search. If Wikipedia clearly lists more than one well-known version and the response shows only one → mark this defect.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query: "Little Women" → Only Little Women (1994) shown. Missing: Little Women (2019).
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "Little Women 1994" → Only 1994 version shown. User specified — no issue.
+      </div>
+    </div>
+    <div class="karina-box">Karina: do a quick Wikipedia check. Mark if the most obvious/well-known versions are missing. No need to dig deep.</div>
+    <div class="escalate-box">Q (versions as text vs card) still open: If the different versions are mentioned in the response text but not shown as separate Movie Cards — is that still a defect? Or is a textual mention sufficient? Awaiting product team.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="g6">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G6</span>
+    <span class="defect-name">Irrelevant Movie/Show</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The user asks for a specific film by name (and possibly year), but the model returns a <strong>different film</strong>.</p>
+    <div class="rule-block">
+      <div class="block-label red">key distinction from G5</div>
+      G5 = user didn't specify → multiple versions should be shown.<br>
+      G6 = user DID specify → wrong film was returned.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query: "Little Women 1994" → Response: Little Women (2019).
+        <hr class="divider">
+        Query: "Dune" → Response: Dune (1984). User likely means 2021.
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "Dune 2021" → Response: Dune (2021). Correct.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="g7">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G7</span>
+    <span class="defect-name">Irrelevant Selections for the Query</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">Only for <strong>Selections/Recommendations</strong>. The model returns films that don't match the user's stated criteria — wrong genre, wrong audience, wrong mood.</p>
+    <div class="rule-block">
+      <div class="block-label red">when to mark</div>
+      At least one film clearly and objectively violates what the user asked for.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query: "Films for children" → List includes movies with violence or 18+ content.
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "Films for children" → All films are age-appropriate.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="g8">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G8</span>
+    <span class="defect-name">Incorrect Movie Rating</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The user <strong>explicitly requests</strong> a minimum review score (e.g., "rating 7 and above"), but the model returns a film below that threshold.</p>
+    <div class="rule-block warn">
+      <div class="block-label warn">only mark if user specified a rating</div>
+      If no rating is mentioned in the query, do NOT mark this — even if the film's score is low.
+    </div>
+    <div class="rule-block purple">
+      <div class="block-label purple">reading the Wiki example</div>
+      "User requests rating at least 7, we selected 5.8." → 7 = user's minimum. 5.8 = what was returned. That's the defect.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query: "Action films with rating at least 7" → Response includes a film rated 5.8.
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "Action films" (no rating mentioned) → Film rated 5.8 appears. Fine.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="g9">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G9</span>
+    <span class="defect-name">Popularity and Relevance</span>
+    <div class="defect-tags"><span class="tag tag-escalate">NEEDS CLARIFICATION</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">For open-ended Selections, the response should include <strong>fresh and reasonably well-known films</strong>. If no time period is specified, expect at least some movies from recent years (2020–2026).</p>
+    <div class="rule-block warn">
+      <div class="block-label warn">only for open-ended requests</div>
+      Don't apply to requests like "best films of the 1990s." Only mark when the request is open and the model defaults to only old or obscure titles.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query: "Action film recommendations" → All 5 results are from the 1980s–1990s. No modern titles.
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "Action film recommendations" → Mix of classics and modern titles (e.g., John Wick, Top Gun: Maverick).
+      </div>
+    </div>
+    <div class="escalate-box">Q3 still open: (a) Is there a minimum review score threshold for recommended films? (b) For queries that inherently invite classic/timeless recommendations — e.g., "movies that changed your perspective on life" (hayata bakış açınızı değiştiren filmler) — is it acceptable if the list consists mostly of well-known classics (Forrest Gump, The Matrix) with no recent titles? Or does the "fresh" rule still apply regardless of query type? Awaiting product team.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="g10">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G10</span>
+    <span class="defect-name">Irrelevant Responses to the Request</span>
+
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The response is completely off-target — wrong intent, doesn't address what the user asked at all.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">key distinction — G10 vs G14</div>
+      <strong>G10 (Irrelevant Responses):</strong> The response completely misses the point — wrong type of content, wrong intent entirely. The model didn't understand or address what the user asked for.<br><br>
+      <strong>G16 (Viewing Parameters Not Met):</strong> The response is correct and on-point, but something specific is missing or doesn't match the user's request. Think of the coffee analogy in G16 — right coffee, wrong specs.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query: "Squid Game season 2 son bölüm" (finale) → Response gives Episode 1.
+        <hr class="divider">
+        Query: "Inception trailer" → Full movie card returned, no trailer link.
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "Squid Game" (no specific episode) → Series card returned. Appropriate.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="g11">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G11</span>
+    <span class="defect-name">Movies 18+</span>
+    <div class="defect-tags"><span class="tag tag-karina">KARINA CLARIFIED</span><span class="tag tag-escalate">NEEDS CLARIFICATION</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">This defect covers cases related to adult/pornographic content. It is <strong>not</strong> about any film that simply happens to be rated 18+.</p>
+    <div class="rule-block">
+      <div class="block-label red">case (b) — model returns actual pornographic content ✓ confirmed</div>
+      If the model returns pornographic content → <strong>mark this defect.</strong>
+    </div>
+    <div class="rule-block warn">
+      <div class="block-label warn">important distinction</div>
+      A film rated 18+ on Netflix, Amazon, etc. = legitimate. Respond normally.<br>
+      Pornography = not a legitimate streaming platform film. Always a defect.
+    </div>
+    <div class="rule-block">
+      <div class="block-label red">case (a) — model refuses a legitimate adult film query</div>
+      If a user asks about a regular adult-rated film available on major streaming platforms, and the model returns nothing (empty response, refusal, or irrelevant deflection) — our current guidance is to mark this defect. However, this case is still being confirmed by the product team.
+    </div>
+    <div class="karina-box">Karina (previous): We don't show pornography → always mark (b). For (a): if the model shows nothing to a regular adult-film query, that's also a defect.<br><br>Karina (via Elif, 6 May): Case (a) — "At this stage, yes. I've included this question in my list, waiting for an answer." Case (b) — confirmed.</div>
+    <div class="escalate-box">Case (a) still being confirmed with product team. For now, mark it — but this may be updated.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="g12">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G12</span>
+    <span class="defect-name">Selection Missing</span>
+    <div class="defect-tags"><span class="tag tag-updated">NEW 8 MAY</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">For a <strong>Selections/Recommendations</strong> request, the response must return <strong>several</strong> Movie Cards — not just one. If only a single card is returned, mark this defect.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">editor tip</div>
+      This only applies when the request type is Selections/Recommendations. One card is always insufficient for this type. The minimum expected number is still pending product team clarification.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query: "What to watch tonight" → Response returns only 1 Movie Card.
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "What to watch tonight" → Response returns 3+ Movie Cards.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="g13a">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G13</span>
+    <span class="defect-name">Duplicate Tiles</span>
+    <div class="defect-tags"><span class="tag tag-updated">NEW 8 MAY</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The same Movie Card appears more than once — either within a single response, or in a new set of recommendations when the user already saw that title in a previous turn.</p>
+    <div class="rule-block warn">
+      <div class="block-label warn">important exception</div>
+      If the user first sees a selection and then asks specifically about a movie from that list — it is <strong>not a defect</strong> for that movie to appear as its own card. This is expected behaviour.
+    </div>
+    <div class="rule-block purple">
+      <div class="block-label purple">editor tip</div>
+      Check the previous dialogue. Two cases to mark: (1) same card appears twice within one response; (2) user asks for more recommendations and a previously shown title reappears.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Turn 1: [Inception, Interstellar, Tenet]<br>
+        Turn 2: "give me more" → [Interstellar, The Prestige, Dunkirk]. Interstellar repeated.
+        <hr class="divider">
+        Single response includes Inception card twice.
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Turn 1: Selection includes Inception.<br>
+        Turn 2: User asks "tell me more about Inception" → Inception card appears. Not a duplicate defect.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="g13b">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G14</span>
+    <span class="defect-name">Incomplete Set</span>
+    <div class="defect-tags"><span class="tag tag-updated">NEW 8 MAY</span><span class="tag tag-factcheck">FACT-CHECK</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The user asks for a complete series or collection of films (e.g., "Harry Potter"), and we expect <strong>all parts</strong> to be shown. If any part is missing, mark this defect.</p>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query: "Harry Potter" → Response shows only 7 of the 8 films. One part is missing.
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "Harry Potter" → All 8 films shown.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="g15">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G15</span>
+    <span class="defect-name">Irrelevant URLs in the Source Set</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The user wants to <strong>watch</strong> a film, but the links don't lead anywhere watchable — they go to cast pages, trivia, news articles, etc. instead of streaming options.</p>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query: "Watch Harry Potter" → Links go to: cast page, filming trivia, actor news. No streaming link.
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "Watch Harry Potter" → Links go to Netflix, Amazon Prime, or a working player.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="g16">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G16</span>
+    <span class="defect-name">Requested Viewing Parameters Not Met</span>
+    <div class="defect-tags"><span class="tag tag-karina">KARINA CLARIFIED</span><span class="tag tag-escalate">NEEDS CLARIFICATION</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The user asks to watch something with <strong>specific viewing attributes</strong>. The model finds the correct film but fails to provide the requested version or language.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">what are "viewing attributes"?</div>
+      Think of it like ordering coffee: the film = the coffee (Americano). Viewing attributes = the specifications (iced/hot, less sugar, oat milk). If the wrong coffee comes → G10. If the coffee is right but served hot when you asked for iced → G16.<br><br>
+      Viewing attributes include: dubbing language, subtitle language, specific version (director's cut, extended edition), named platform (e.g., "Avatar 2 Netflix").
+    </div>
+    <div class="rule-block">
+      <div class="block-label red">examples</div>
+      User asks for Turkish dub → only original-language version linked<br>
+      User asks for English subtitles → links provided but none have English subs<br>
+      User asks for director's cut → only theatrical version linked
+    </div>
+    <div class="rule-block warn">
+      <div class="block-label warn">service type (e.g. "free to watch", "without subscription")</div>
+      Karina: use common sense for these cases for now. Further discussion pending.
+    </div>
+    <div class="escalate-box">Q14 still open: (a) If the requested parameter provably doesn't exist anywhere online, should we still mark this defect — or is an honest model response stating unavailability acceptable? (b) Does the editor need to do external research to verify whether the requested parameter actually exists online before deciding? Awaiting product team.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="g17">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G17</span>
+    <span class="defect-name">Missed Dialog</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The task has a multi-turn conversation, but the model ignores or loses track of what was said earlier.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">editor tip</div>
+      Check if there's a previous dialogue above the current query. If the model's response is inconsistent with earlier context — or starts fresh as if no prior turns exist — mark this defect.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Turn 1: "I love horror movies."<br>Turn 2: "Recommend something for tonight." → Model recommends romantic comedies.
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Turn 2 → Model recommends horror films, remembering the earlier context.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="g18">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">G18</span>
+    <span class="defect-name">Language Issues</span>
+    <div class="defect-tags"><span class="tag tag-karina">KARINA CLARIFIED</span><span class="tag tag-escalate">NEEDS CLARIFICATION</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The model's written response is in the wrong language or mixes languages. The <strong>model-generated text</strong> (introduction, description) must match the language of the user's query.</p>
+    <div class="rule-block warn">
+      <div class="block-label warn">ambiguous query language → always prioritise Turkish</div>
+      If the query is a word that exists in both Turkish and English (e.g., "film"), or the language is otherwise ambiguous — the expected response language is <strong>Turkish</strong>. If a model responds in English for such a query, mark Language Issues.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Query in English → Introduction and description are mixed English/Turkish.
+        <hr class="divider">
+        Query: "film" (ambiguous) → Model responds in English. Turkish was expected.
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "spy family bond" (English) → Description in English, "2022 · çizgi filmi, aksiyon" in Turkish. Fine.
+        <hr class="divider">
+        Query: "film" (ambiguous) → Model responds in Turkish. Correct.
+      </div>
+    </div>
+    <div class="rule-block purple">
+      <div class="block-label purple">editor tip — what counts as model-written text</div>
+      Metadata fields (year, genre, age rating) pulled from the database may appear in Turkish even when the query is in another language. This follows the same principle as Turkish labels in the E-com task. Only the text the model itself generates (introduction, description) is evaluated for language consistency.
+    </div>
+    <div class="karina-box">Karina: if the query is ambiguous in terms of language, it should always be Turkish.</div>
+    <div class="escalate-box">Q19 still open: Is it formally acceptable for card metadata fields (year, genre, age rating label) to appear in Turkish when the user's query is in another language? Awaiting product team.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════ 2. ELEMENTS ═══════════════════ -->
+<div class="section-header">
+  <span class="section-pill pill-elements">2 · Elements</span>
+  <div class="section-line"></div>
+</div>
+
+<div class="rule-block green" style="margin-bottom:20px">
+  <div class="block-label green">how element defects work</div>
+  These defects apply to individual elements within each Movie Card. Check every card in the response — if one card has a missing element, mark it even if the other cards are fine.
+</div>
+
+<div class="defect-card" id="e1">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E1</span>
+    <span class="defect-name">No Introduction</span>
+    <div class="defect-tags"><span class="tag tag-karina">KARINA CLARIFIED</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">Whenever the response contains one or more Movie Cards, there must be an introduction — a short text written <strong>before</strong> the card(s). Mark this if the response jumps straight to a card with nothing written before it.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">two types of introduction — both count</div>
+      In a Selection response, there can be two levels of introduction:<br><br>
+      1. <strong>General selection intro</strong> — appears before all cards. Explains how the model understood the query and why these films were chosen.<br>
+      2. <strong>Per-movie intro</strong> — appears before each individual card. A short annotation about that specific film.<br><br>
+      Both are treated as "introduction" and both are subject to the 3-line max rule (E3). Mark "No Introduction" if either is missing where expected.
+    </div>
+    <div class="karina-box">Karina: "The first part is the general introduction about the selection. Then we see the introduction for each movie in the selection. Both are introduction so we treat both as introduction which can't be longer than 3 lines."</div>
+  </div>
+</div>
+
+<div class="defect-card" id="e2">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E2</span>
+    <span class="defect-name">Introduction Misplaced</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The introduction exists but appears <strong>after</strong> the movie card(s) instead of before. Introduction must always come first.</p>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        [Movie Card first] → then: "Here is a great film for you."
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        "Here is a great film for you." → [Movie Card below]
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="e3">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E3</span>
+    <span class="defect-name">Introduction Length</span>
+    <div class="defect-tags"><span class="tag tag-karina">KARINA CLARIFIED</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">Any introduction — whether the general selection intro or the per-movie intro — must not exceed <strong>3 lines</strong> in Touch mode (mobile view). Mark this if either exceeds the limit.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">editor tip</div>
+      Evaluate each introduction separately in Touch/mobile view. The 3-line limit applies to both: the general intro at the top AND each individual per-movie intro before each card.
+    </div>
+    <div class="karina-box">Karina: both the general selection introduction and the per-movie introduction are subject to the same 3-line maximum rule.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="e4">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E4</span>
+    <span class="defect-name">Introduction Issues</span>
+    <div class="defect-tags"><span class="tag tag-karina">KARINA CLARIFIED</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The introduction is present, correctly placed, and the right length — but the <strong>quality</strong> is poor. It must contain substantive context justifying why the film(s) suit the user's request, or serve as a short annotation for the movie.</p>
+    <div class="rule-block">
+      <div class="block-label red">what counts as substantive</div>
+      The intro should briefly explain: how the model understood the query, what the films have in common, or why they are relevant to the user. For Selections, "Here are some [genre] films:" is acceptable as a general opener — but the per-movie intros should add actual context about each film.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        "Here are some movies." (no context, no connection to what was asked)
+        <hr class="divider">
+        "Here are my recommendations." (generic, adds nothing)
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Query: "action film recommendations" → "If you're looking for action, here are options that are both fast-paced and diverse. The following combine action tempo with different genres."
+        <hr class="divider">
+        Per-movie intro: "İyimserlik ve hayatın tadı — Hayatın küçük anlarını büyüten, 'her şey bir yerde bir anlam bulur' hissi veren bir yolculuk." (short annotation describing the film's feeling)
+      </div>
+    </div>
+    <div class="karina-box">Karina: there should be substantive context justifying that the movie/show suits the user or serves as a short annotation. For a selection, "here are some [x] films:" as a general opener is OK. Per-movie intros should add real context.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="e5">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E5</span>
+    <span class="defect-name">No Pictures</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">At least one image (poster or movie still) must be present in the card. Mark this if there is no image at all.</p>
+  </div>
+</div>
+
+<div class="defect-card" id="e6">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E6</span>
+    <span class="defect-name">Pictures Mismatch</span>
+    <div class="defect-tags"><span class="tag tag-factcheck">FACT-CHECK</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">An image is present, but it clearly doesn't match the film — e.g., a different film's poster is shown.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">editor tip</div>
+      You don't need to verify the image is "official." Just check: does it visually appear to match the film (title on poster, recognisable scenes/characters)?
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="e7">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E7</span>
+    <span class="defect-name">No Title</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The card has no film/show title displayed. Title must always be present.</p>
+  </div>
+</div>
+
+<div class="defect-card" id="e8">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E8</span>
+    <span class="defect-name">Title Mismatch</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The title shown is incorrect — wrong film name, clearly wrong spelling, or a different title entirely.</p>
+  </div>
+</div>
+
+<div class="defect-card" id="e9">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E9</span>
+    <span class="defect-name">No Subtitle</span>
+    <div class="defect-tags"><span class="tag tag-karina">KARINA CLARIFIED</span><span class="tag tag-factcheck">FACT-CHECK</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">"Subtitle" here refers to <strong>language subtitles</strong> (e.g., English subtitles, Turkish subtitles) — not the film's title subtitle. Mark this when the user has requested subtitles but the card or player shows no subtitle availability.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">editor tip</div>
+      This is relevant when the user has specifically requested subtitles in their query (e.g., "English subtitle", "Turkish alt yazı"). Check whether the player or streaming links indicate subtitle availability.
+    </div>
+    <div class="karina-box">Karina: only mark if the film has subtitles that are missing from the card. If subtitles simply don't exist for this title, this defect does not apply.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="e10">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E10</span>
+    <span class="defect-name">Subtitle Mismatch</span>
+    <div class="defect-tags"><span class="tag tag-factcheck">FACT-CHECK</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The user requested a specific subtitle language, a subtitle is shown — but it's the wrong language. For example, user asked for English subtitles but only Turkish subtitles are available in the links.</p>
+  </div>
+</div>
+
+<div class="defect-card" id="e11">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E11</span>
+    <span class="defect-name">No Year of Release</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The release year is not displayed in the card.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">where to find it</div>
+      Metadata line below the pictures: e.g., <em>2016 · Adventure · 6+</em>. The first number is the year. For TV series, a year range is acceptable (e.g., 2009–2020).
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="e12">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E12</span>
+    <span class="defect-name">Wrong Date</span>
+    <div class="defect-tags"><span class="tag tag-factcheck">FACT-CHECK</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The year is present but incorrect. Do a quick check if you suspect it's wrong.</p>
+  </div>
+</div>
+
+<div class="defect-card" id="e13">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E13</span>
+    <span class="defect-name">No Genre</span>
+    <div class="defect-tags"><span class="tag tag-escalate">NEEDS CLARIFICATION</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">No genre is displayed in the card.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">where to find it</div>
+      Same metadata line: <em>2016 · Adventure · 6+</em>. The middle item(s) are the genre(s).
+    </div>
+    <div class="escalate-box">Q19 still open: Genre labels may appear in Turkish even when the query is in another language. Whether this counts as a Language Issues defect is awaiting product team clarification.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="e14">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E14</span>
+    <span class="defect-name">Genre Mismatch</span>
+    <div class="defect-tags"><span class="tag tag-factcheck">FACT-CHECK</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The genre listed is clearly wrong — e.g., "comedy" for a horror film.</p>
+  </div>
+</div>
+
+<div class="defect-card" id="e15">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E15</span>
+    <span class="defect-name">No Age Rating</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">No age rating is displayed in the card (e.g., 6+, 13+, 18+).</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">where to find it</div>
+      Same metadata line: <em>2016 · Adventure · 6+</em>. The last item is the age rating.
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="e16">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E16</span>
+    <span class="defect-name">Age Rating Issues</span>
+    <div class="defect-tags"><span class="tag tag-karina">KARINA CLARIFIED</span><span class="tag tag-factcheck">FACT-CHECK</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The age rating shown is incorrect based on the <strong>Turkish rating standard</strong>.</p>
+    <div class="rule-block">
+      <div class="block-label red">benchmark = Turkish rating</div>
+      Always judge age rating correctness by the Turkish rating — not the origin country's rating. This task serves Turkish market users, so the Turkish classification is what matters.<br><br>
+      Example: <em>Deadpool</em> (2016) is R (≈17+) in the USA but <strong>15+</strong> in Turkey. If the card shows "15+" → correct, no defect. If it shows "17+" or "R" → mark Age Rating Issues.
+    </div>
+    <div class="rule-block warn">
+      <div class="block-label warn">fact-check required</div>
+      A quick fact-check is needed to verify the Turkish age rating. Check a Turkish film database or the film's Turkish platform listing.
+    </div>
+    <div class="karina-box">Karina: editors should judge based on the Turkish rating. A quick fact check is needed.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="e17">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E17</span>
+    <span class="defect-name">No Review Score</span>
+    <div class="defect-tags"><span class="tag tag-karina">KARINA CLARIFIED</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">No score is shown in the card (e.g., IMDb 8.0). Mark this for <strong>both movies and TV shows/series</strong> — the requirement applies to all card types.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">where to find it</div>
+      Below the title — a yellow IMDb badge with a number, e.g., <em>8,0</em>.
+    </div>
+    <div class="rule-block warn">
+      <div class="block-label warn">do not fact-check the score</div>
+      Do NOT verify whether the score is accurate. "Review Score Invalid" has been removed from the Wiki — fact-checking scores is handled by a separate team. Only check whether the score element is present or absent.
+    </div>
+    <div class="rule-block warn">
+      <div class="block-label warn">applies to series too</div>
+      Even if most series cards in the task don't display a review score, still mark this defect when absent. The Wiki examples are illustrative only — not perfect samples.
+    </div>
+    <div class="karina-box">Karina: "For now, let's mark it. These examples are used only to show which elements are typical for the responses, not to show any perfect samples in all terms."</div>
+  </div>
+</div>
+
+<div class="defect-card" id="e18">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E18</span>
+    <span class="defect-name">No Description</span>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The card has no descriptive text explaining what the film/show is about. A full description (plot or context) must be present.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">short vs full description</div>
+      The <em>Short Description</em> (a few adjectives: "Musical, bright, inspiring") is <strong>optional</strong> — don't mark it as missing. The <em>Full Description</em> (actual plot text) is required.
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="e19">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E19</span>
+    <span class="defect-name">No Duration</span>
+    <div class="defect-tags"><span class="tag tag-karina">KARINA CLARIFIED</span><span class="tag tag-escalate">NEEDS CLARIFICATION</span><span class="tag tag-factcheck">FACT-CHECK</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The runtime is not shown anywhere in the card.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">where to find it — two possible locations</div>
+      1. <strong>Text below the description</strong>: e.g., <em>"2h 34 min"</em> — applies to ALL card types.<br>
+      2. <strong>Timestamp on the embedded player</strong>: e.g., <em>"1:35:47"</em> in the corner of the video frame — only when there's a direct embedded player.
+    </div>
+    <div class="rule-block warn">
+      <div class="block-label warn">two card types behave differently</div>
+      <strong>Card with embedded player:</strong> Duration may appear as a timestamp on the video frame. If it's there, no defect.<br><br>
+      <strong>Card with external links only</strong> ("Şimdi İzle" / "Watch online" button): No video frame, so no timestamp. Duration <strong>must</strong> appear as text below the description. If it doesn't → mark this defect.
+    </div>
+    <div class="example-row">
+      <div class="ex-box bad">
+        <div class="ex-label bad">✗ Mark defect</div>
+        Card shows "Şimdi İzle" button only. No "2h 34 min" text below the description.
+      </div>
+      <div class="ex-box good">
+        <div class="ex-label good">✓ No defect</div>
+        Card has "1:35:47" on the embedded player. OR "2h 34 min" written below the description.
+      </div>
+    </div>
+    <div class="karina-box">Karina (via Elif): Duration requirement applies regardless of card type. Mark "No Duration" if absent — even for external-links-only cards.</div>
+    <div class="escalate-box">Q12 still open: For TV shows/series, platforms typically display season/episode count rather than runtime. Should "No Duration" still be marked for series cards where duration is absent but season/episode count is present? Should "No season/episode count" be treated as an equivalent defect for series? Awaiting product team.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="e20">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E20</span>
+    <span class="defect-name">Duration Mismatch</span>
+    <div class="defect-tags"><span class="tag tag-escalate">NEEDS CLARIFICATION</span><span class="tag tag-factcheck">FACT-CHECK</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The runtime is present but clearly incorrect. Do a quick check if you suspect it's wrong.</p>
+    <div class="escalate-box">Q (duration fact-check) still open: Does marking "Duration Mismatch" require editors to fact-check the runtime against an external source? Or should editors only mark it when the duration is obviously wrong (e.g., a 2-hour film listed as 10 minutes)? Awaiting product team.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="e21">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E21</span>
+    <span class="defect-name">No Player or Links Available</span>
+    <div class="defect-tags"><span class="tag tag-karina">KARINA CLARIFIED</span><span class="tag tag-escalate">NEEDS CLARIFICATION</span><span class="tag tag-factcheck">FACT-CHECK</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means"><strong>Only applies to "To Watch" requests.</strong> When the user wants to watch a specific film, the card must include a working player or working streaming links. Mark this if they are missing or broken.</p>
+    <div class="rule-block warn">
+      <div class="block-label warn">trigger words to identify "watch" intent</div>
+      Look for: "izle", "watch", "online", "full HD", "where to watch", "streaming", platform names (Netflix, etc.), or dub/subtitle requests.
+    </div>
+    <div class="rule-block purple">
+      <div class="block-label purple">valid player forms (from screenshots)</div>
+      ✓ Embedded video player with play button and timestamp<br>
+      ✓ "Çevrimiçi izle" (Watch online) button with streaming icons<br>
+      ✓ "Watch online" dropdown with platform logos<br>
+      ✓ YouTube trailer link (trailers typically come from YouTube in this task)
+    </div>
+    <div class="karina-box">Karina: (1) Any non-broken link counts — subscription requirement is irrelevant. (2) YouTube trailer links are valid. (3) Editors must click the link/player to verify it actually works.</div>
+    <div class="escalate-box">Q11 still open: If links are from unofficial, unverified, or potentially pirated streaming sites — should editors mark a defect, or is any working link acceptable regardless of source legitimacy? Awaiting product team.</div>
+  </div>
+</div>
+
+<div class="defect-card" id="e22">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E22</span>
+    <span class="defect-name">Trailer Missing</span>
+    <div class="defect-tags"><span class="tag tag-updated">NEW 8 MAY</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">The user explicitly requested a trailer, but none is present in the response.</p>
+    <div class="rule-block purple">
+      <div class="block-label purple">editor tip</div>
+      Only mark this when the user's query specifically asks for a trailer. If no trailer was requested, this defect is not applicable.
+    </div>
+  </div>
+</div>
+
+<div class="defect-card" id="e23">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">E23</span>
+    <span class="defect-name">Poor Trailer</span>
+    <div class="defect-tags"><span class="tag tag-updated">NEW 8 MAY</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">A trailer is present but is of very poor quality — unwatchable or clearly not fit for purpose.</p>
+  </div>
+</div>
+
+<div class="defect-card" id="e24">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">—</span>
+    <span class="defect-name">Sources</span>
+    <div class="defect-tags"><span class="tag tag-updated">NEW 8 MAY</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">Sources are shown at the bottom of the Movie Card (the "Resources" row with platform icons). <strong>We do not check sources</strong> — they are not evaluated for defects.</p>
+    <div class="rule-block green">
+      <div class="block-label green">no action needed</div>
+      Per the updated movie card diagram: "(we don't check them)." Simply ignore the Sources element when evaluating a card.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ 3. OTHER ═══════════════════ -->
+<div class="section-header">
+  <span class="section-pill pill-other">3 · Other</span>
+  <div class="section-line"></div>
+</div>
+
+<div class="defect-card" id="o1">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">O1</span>
+    <span class="defect-name">Other</span>
+    <div class="defect-tags"><span class="tag tag-karina">KARINA CLARIFIED</span></div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+    <p class="what-it-means">Use this when you notice a <strong>significant, obvious flaw</strong> that clearly affects quality — but it doesn't fit any of the defects listed above.</p>
+    <div class="rule-block warn">
+      <div class="block-label warn">use sparingly</div>
+      Don't use "Other" for minor issues or personal preferences. Only mark when the flaw is substantial and clearly impacts usefulness.
+    </div>
+    <div class="rule-block purple">
+      <div class="block-label purple">known cases that go here</div>
+      • User specifies a platform by name (e.g., "Avatar 2 Netflix") but model links to other valid platforms instead.<br>
+      • User requests a specific number of films (e.g., "give me 10 movies") but the response returns fewer than requested.
+    </div>
+    <div class="karina-box">Karina: if the user specifies a platform by name but the model gives links to other valid platforms → mark as "Other." If the user asks for 10 movies but only 8 are returned → also mark as "Other" for now.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════ FACT-CHECK REFERENCE ═══════════════════ -->
+<div class="section-header">
+  <span class="section-pill pill-other">Quick Reference · What to Fact-Check</span>
+  <div class="section-line"></div>
+</div>
+
+<div class="rule-block green" style="margin-bottom:16px">
+  <div class="block-label green">general principle</div>
+  Only fact-check when it's listed as required in this section.
+</div>
+
+<div class="defect-card" id="fc">
+  <div class="defect-header" onclick="toggle(this)">
+    <span class="defect-number">FC</span>
+    <span class="defect-name">Elements That Require Fact-Checking</span>
+
+    <span class="chevron">▼</span>
+  </div>
+  <div class="defect-body">
+
+    <div class="rule-block warn">
+      <div class="block-label warn">✓ fact-check required</div>
+      <strong>Age Rating Issues (E16)</strong> — Verify the Turkish age rating. Check a Turkish film database or the film's Turkish platform listing (e.g., Netflix TR, BluTV).<br><br>
+      <strong>Loss of Versions (G5)</strong> — Quick Wikipedia search to confirm whether other well-known versions of the film exist.<br><br>
+      <strong>Loss of Sequels/Prequels (G4)</strong> — Verify whether the film has sequels or prequels using Wikipedia or IMDb.<br><br>
+      <strong>Incomplete Set (G14)</strong> — Verify the total number of parts in the series/collection (e.g., confirm Harry Potter has 8 films) using Wikipedia or IMDb.<br><br>
+      <strong>Genre Mismatch (E14)</strong> — Quick check if the genre listed is clearly wrong for the film.<br><br>
+      <strong>Pictures Mismatch (E6)</strong> — Verify the image visually matches the film (poster, recognisable characters/scenes).<br><br>
+      <strong>Player/Links (E21)</strong> — Click the link or player to verify it actually works and is not broken.<br><br>
+      <strong>Wrong Date (E12)</strong> — Quick check if you suspect the release year is wrong.<br><br>
+      <strong>Duration Mismatch (E20)</strong> — Quick check if you suspect the runtime is obviously wrong.<br><br>
+      <strong>Subtitle availability (E9)</strong> — Check whether the player or streaming links indicate subtitle availability for the language requested.<br><br>
+      <strong>Duration/Season count for series (E19)</strong> — Verify season/episode count if duration is absent on a series card.<br><br>
+
+    </div>
+
+    <div class="rule-block green">
+      <div class="block-label green">✗ do not fact-check</div>
+      <strong>Review Score (E17)</strong> — "Review Score Invalid" has been removed from the Wiki. Only check whether the score is present or absent. Accuracy is handled by a separate team.
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function toggle(header) {
+    const card = header.parentElement;
+    card.classList.toggle('open');
+  }
+  function expandAll() {
+    document.querySelectorAll('.defect-card').forEach(c => c.classList.add('open'));
+  }
+  function collapseAll() {
+    document.querySelectorAll('.defect-card').forEach(c => c.classList.remove('open'));
+  }
+</script>
+</body>
+</html>
